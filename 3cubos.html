@@ -1,0 +1,107 @@
+<!DOCTYPE html >
+    <html>
+    <head>
+    <meta charset = "utf-8"/>
+    <style>
+    body 
+	{
+        background - color: #ffffff;
+        margin: 0;
+        overflow: hidden;
+    } </style> </head>
+    <body>
+
+<!--- https://ajax.googleapis.com/ajax/libs/threejs/r76/three.min.js -->
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/95/three.min.js"> </script>
+<script>
+//Creacion de variables de la escena
+var camera, scene, renderer;
+var geometria, material, mesh;
+var clock;
+//Funcion Cubo, donde se crea cada objeto
+function cubo(x, y, z, px, py, pz, material, color, wf) 
+{
+	geometria = new THREE.CubeGeometry(x, y, z);
+    switch(material) 
+	{
+		//Casos para elegir el Material del cubo
+    	case 'Basic': material = new THREE.MeshBasicMaterial({color: color, wireframe: wf}); break;
+    	case 'Standard': material = new THREE.MeshStandardMaterial({color: color, wireframe: wf}); break;
+    	case 'Physical': material = new THREE.MesPhysicalMaterial({color: color, wireframe: wf}); break;
+    	case 'Phong': material = new THREE.MeshPhongMaterial({color: color, wireframe: wf}); break;
+    	case 'Lambert': material = new THREE.MeshLambertMaterial({color: color, wireframe: wf}); break;
+    }
+	//Creacion del cubo
+    cube = new THREE.Mesh(geometria, material);
+	//Añade el cubo a la escena y le da la posicion en el origen
+    scene.add(cube);
+    cube.position.set(px, py, pz);
+
+    return cube;
+}
+//Funcion principal
+function init() 
+{
+	//Paso 1: Creacion y renderizado de la escena
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth*0.99, window.innerHeight*0.99);
+    document.body.appendChild(renderer.domElement);
+    scene = new THREE.Scene();
+	//Paso 2: Arreglo de cubos y la cantidad de cubos a crear
+    var arrCube = [];
+	var numCubos= 3;
+	//Variable t para el tamaño de los cubos
+    var t = 1;
+	//Paso 3: For para la creacion de cubos
+	var angulo = 2;
+    for (var i = 0; i < numCubos; i++) 
+	{
+		//Paso 4: Creacion del cubo base, como es el primero no se aplica ni escala ni rotacion
+		if (i==0)
+		{
+			//Añade los cubos al arreglo, dejandolo en el origen
+			arrCube.push(cubo(t, t, t, 0, 0, 0, 'Phong', (i==0 ? 'red': i==1 ? 'green' : 'blue'), false));
+		}else
+		{	//paso 5 creacion de los otros cubos.	
+			//Añade los otros dos cubos al arreglo, dejandolo en el origen
+			arrCube.push(cubo(t, t, t, 0, 0, 0, 'Lambert', (i==0 ? 'red': i==1 ? 'green' : 'blue'), false));
+			//Rotacion de los cubo sobre el eje, uso de un vector
+			if (i % 2==0) //Si el contador es par (0,2) entonces el cubo se rota Pi/2
+			{
+				var eje  = new THREE.Vector3 (0,1,0); // Eje vectorial
+				arrCube[i].rotateOnAxis(eje, Math.PI / angulo); // gire π / 2 alrededor del eje
+			}else //Si el contador es impar (1) el cubo se rota pi/4
+			{
+				var eje  = new THREE.Vector3 (0,1,0); // Eje vectorial
+				arrCube[i].rotateOnAxis(eje, Math.PI / (angulo +2)); // gire π / 4 alrededor del eje
+			}		
+			//Escalado de los cubos a la mitad
+			arrCube[i].scale.set(0.5,0.5,0.5);
+			t=t/2 //Divide t a la mitad para la creación del siguiente cubo
+	        //Traslacion del cubo  en el eje y, para ponerlos uno encima de otro 
+			d = i + ((i)/(2*i))	
+			arrCube[i].geometry.translate(0,d,0);
+		}
+    }
+
+	//Ejes coordenados
+    const axesHelper = new THREE.AxesHelper(10);
+    scene.add(axesHelper);
+
+	//Creacion de la camara para visualizar la escena
+    camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0,20, 0);
+    camera.lookAt(scene.position);
+
+	var light = new THREE.PointLight(0xFFFFFF);
+	light.position.set(20, 20, 20);
+	scene.add(light);
+
+    renderer.render(scene, camera);
+}
+
+init();
+
+</script>
+</body>
+</html>
